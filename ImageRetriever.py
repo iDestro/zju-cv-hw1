@@ -1,4 +1,5 @@
 import torch
+import math
 
 
 class ImageRetriever:
@@ -21,7 +22,7 @@ class ImageRetriever:
         visual_words_num = torch.sum(image.histogram)
         for i in range(k):
             tf = image.histogram[i] / visual_words_num
-            idf = len(self.images) / (len(self.inverted_file_table[i]) + 1)
+            idf = math.log(len(self.images) / (len(self.inverted_file_table[i]) + 1))
             tf_idf_weighted_histogram[i] = tf * idf
         return tf_idf_weighted_histogram
 

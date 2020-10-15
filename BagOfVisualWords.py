@@ -9,7 +9,7 @@ class BagOfVisualWords:
         self.images = images
         self.kmeans = kmeans
         self.total_descriptors = self.__load_total_descriptors()
-        self.visual_words = self.__generate_visual_words()
+        self.visual_words, self.labels = self.__generate_visual_words()
         self.inverted_file_table = self.__generate_inverted_file_table()
 
     def __load_total_descriptors(self):
@@ -22,14 +22,13 @@ class BagOfVisualWords:
         return total_descriptors
 
     def __generate_visual_words(self):
-        k = 1000
-        kmeans = KMeans(n_clusters=k, device=device)
-        kmeans.fit(self.total_descriptors)
-        centers = kmeans.cluster_centers_
-        return centers
+        self.kmeans.fit(self.total_descriptors)
+        centers = self.kmeans.cluster_centers_
+        labels = self.kmeans.labels_
+        return centers, labels
 
     def __generate_inverted_file_table(self):
-        labels = self.kmeans.labels_
+        labels = self.labels
         inverted_file_table = {i: [] for i in range(self.kmeans.n_clusters)}
         descriptor_cursor = 0
         for image in self.images:

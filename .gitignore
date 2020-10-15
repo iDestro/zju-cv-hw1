@@ -10,7 +10,7 @@ __pycache__/
 .Python
 build/
 dataset/
-dataset/*
+model/
 develop-eggs/
 dist/
 downloads/
@@ -129,3 +129,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/model/

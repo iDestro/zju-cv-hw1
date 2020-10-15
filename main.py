@@ -13,9 +13,16 @@ args = parser.parse_args()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if __name__ == '__main__':
-    kmeans = KMeans(n_clusters=1000, device=device)
+    kmeans = KMeans(n_clusters=75, device=device)
     target_image = load_image(args.image_path)
     images = load_images(args.image_database_path)
     image_retriever = ImageRetriever(BagOfVisualWords(images=images, kmeans=kmeans))
     result = image_retriever.retrieve(target_image)
     imshow(result)
+
+kmeans = KMeans(n_clusters=75, device=device)
+target_image = load_image(args.image_path)
+images = load_images(args.image_database_path)
+image_retriever = ImageRetriever(BagOfVisualWords(images=images, kmeans=kmeans))
+result = image_retriever.retrieve(target_image)
+imshow(result)

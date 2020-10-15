@@ -1,47 +1,65 @@
 import torch
-import numpy as np
 import random
+import numpy as np
 
 
 class Canopy:
-    def __init__(self, x, t1, t2):
-        self.x = x
+    def __init__(self, t1, t2, device):
         self.t1 = t1
         self.t2 = t2
+        self.device = device
         self._labels = None
-        self._cluster_centers = None
 
-    def fit(self):
-        labels = torch.zeros([len(self.x), 1])
-        unvisited_indexes = list(range(len(self.x)))
-        canopies = {}
-        while len(unvisited_indexes) != 0:
-            canopy_center = random.choice(unvisited_indexes)
-            canopy = [canopy_center]
-            delete_indexes = []
-            unvisited_indexes.remove(canopy_center)
-            for index in unvisited_indexes:
-                dis = torch.sqrt(torch.sum((self.x[index]-self.x[canopy_center])**2))
-                if dis < self.t1:
-                    canopy.append(index)
-                if dis < self.t2:
-                    delete_indexes.append(index)
-            unvisited_indexes = [i for i in unvisited_indexes if i not in delete_indexes]
-            canopies[canopy_center] = canopy
-        type = {index: i for i, index in enumerate(canopies.keys())}
-        cluster_centers = []
-        for key, value in canopies.items():
-            labels[value, :] = type[key]
-            cluster_centers.append(self.x[key])
+    def fit(self, x):
+        x = x.to(self.device)
+        length = len(x)
+        labels = torch.zeros(length).to(self.device)
+        unvisited_indexes = torch.ones(length).to(self.device)
+        indexes = torch.arange(length)
+        while torch.sum(unvisited_indexes) > 0:
+            canopy_center = torch.LongTensor(np.random.choice(indexes[unvisited_indexes == 1], 1)).to(self.device)
+            labels[canopy_center] = canopy_center.float()
+            unvisited_indexes[canopy_center] = 0
+            dis = torch.sqrt(torch.sum((x-x[canopy_center])**2, dim=1))
+            a = torch.zeros(length).to(self.device)
+            b = torch.zeros(length).to(self.device)
+            a[dis < self.t1] = 1
+            b[unvisited_indexes == 1] = 1
+            matched = a * b
+            print(torch.sum(matched))
+            # print(matched)
+            labels[matched == 1] = canopy_center.float()
+            a = torch.zeros(length).to(self.device)
+            a[dis < self.t2] = 1
+            deleted = a * b
+            unvisited_indexes[deleted == 1] = 0
 
         self._labels = labels
-        self._cluster_centers = torch.Tensor([np.array(i) for i in cluster_centers])
+        print(len(set(labels.to('cpu').numpy().tolist())))
 
     @property
     def labels_(self):
         return self._labels
 
-    @property
-    def cluster_centers_(self):
-        return self._cluster_centers
+    def silhouette_score(self, x, labels):
+        x = x.to(self.device)
+        labels = labels.to(self.device)
+        length = len(x)
+        indexes = torch.arange(length)
+        sampled_indexes = np.random.choice(indexes, 10000)
+        ones_vector = torch.ones(length).to(self.device)
+        total = torch.Tensor([0]).to(self.device)
+        for index, i in enumerate(x[sampled_indexes]):
+            if index % 100 == 0:
+                print(index)
+            matched = labels == labels[index]
+            dis = torch.sqrt(torch.sum((x-i)**2, dim=1))
+            cnt = torch.sum(ones_vector[matched])
+            a = torch.sum(dis[matched]) / cnt
+            matched = labels != labels[index]
+            cnt = torch.sum(ones_vector[matched])
+            b = torch.sum(dis[matched]) / cnt
+            total += (b-a) / (torch.max(a, b))
+        return total / 10000
+
 
