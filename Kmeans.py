@@ -35,12 +35,11 @@ class KMeans:
         return dis
 
     def fit(self, data):
-        print("yes")
         data = data.to(self.device)
         cluster_centers = self._initial_state(data)
         dis = torch.zeros((len(data), self.n_clusters))
+
         while True:
-            print("no")
             for i in range(self.n_clusters):
                 dis[:, i] = torch.norm(data - cluster_centers[i], dim=1)
             labels = torch.argmin(dis, dim=1)
@@ -48,7 +47,7 @@ class KMeans:
             for i in range(self.n_clusters):
                 cluster_centers[i, :] = torch.mean(data[labels == i], dim=0)
             center_shift = torch.sum(torch.sqrt(torch.sum((cluster_centers - cluster_centers_pre) ** 2, dim=1)))
-            print(center_shift)
+            # print(center_shift)
             if center_shift ** 2 < self.tol:
                 break
 
@@ -56,7 +55,8 @@ class KMeans:
         self._labels = labels
 
     def predict(self, x):
-        dis = torch.zeros([x.size(0), self.n_clusters])
+        x = x.to(self.device)
+        dis = torch.zeros([x.shape[0], self.n_clusters]).to(self.device)
 
         for i in range(self.n_clusters):
             dis[:, i] = torch.sum((x-self._cluster_centers[i, :])**2, dim=1)
