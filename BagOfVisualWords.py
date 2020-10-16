@@ -37,8 +37,6 @@ class BagOfVisualWords:
     def __generate_inverted_file_table(self):
         labels = self.labels.numpy()
         inverted_file_table = {i: [] for i in range(self.kmeans.n_clusters)}
-        for i in inverted_file_table.keys():
-            print("inverted_file_table: ", i)
         descriptor_cursor = 0
         for image in self.images:
             descriptors_size = image.descriptors_size

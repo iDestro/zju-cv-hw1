@@ -23,15 +23,12 @@ class ImageRetriever:
         for i in range(k):
             tf = image.histogram[:, i] / visual_words_num
             idf = math.log(len(self.images) / (len(self.inverted_file_table[i]) + 1))
-            print('tf:', tf)
-            print('idf', idf)
             tf_idf_weighted_histogram[:, i] = tf * idf
         return tf_idf_weighted_histogram
 
     def __generate_total_tf_idf_weighted_histogram(self):
         total_tf_idf_weighted_histogram = None
         for image in self.images:
-            print(image.tf_idf_weighted_histogram.shape)
             if total_tf_idf_weighted_histogram is None:
                 total_tf_idf_weighted_histogram = image.tf_idf_weighted_histogram
             else:
